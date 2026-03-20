@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hub Orange Boutique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #FF7900;
+    --orange-light: #FF9A3C;
+    --orange-dim: rgba(255,121,0,0.12);
+    --black: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0f0f0;
+    --text-muted: #888;
+    --perf: #FF7900;
+    --challenge: #3B82F6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(255,121,0,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(59,130,246,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 64px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .header-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    background: var(--orange);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .eyebrow-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--orange);
+  }
+
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 56px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .header h1 span {
+    color: var(--orange);
+  }
+
+  .header-sub {
+    margin-top: 14px;
+    font-size: 15px;
+    color: var(--text-muted);
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  /* Category */
+  .category {
+    margin-bottom: 40px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .category:nth-child(2) { animation-delay: 0.1s; }
+  .category:nth-child(3) { animation-delay: 0.2s; }
+  .category:nth-child(4) { animation-delay: 0.3s; }
+
+  .category-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .category-label span {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .category-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Cards grid */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  /* Card */
+  .card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    cursor: pointer;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .card[data-color="perf"]::before {
+    background: radial-gradient(ellipse 80% 60% at 0% 0%, rgba(255,121,0,0.1), transparent);
+  }
+
+  .card[data-color="challenge"]::before {
+    background: radial-gradient(ellipse 80% 60% at 0% 0%, rgba(59,130,246,0.1), transparent);
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255,255,255,0.15);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .card[data-color="perf"] .card-icon {
+    background: rgba(255,121,0,0.15);
+  }
+
+  .card[data-color="challenge"] .card-icon {
+    background: rgba(59,130,246,0.15);
+  }
+
+  .card-arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .card:hover .card-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  .card[data-color="perf"]:hover .card-arrow { background: rgba(255,121,0,0.2); }
+  .card[data-color="challenge"]:hover .card-arrow { background: rgba(59,130,246,0.2); }
+
+  .card-arrow svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--text-muted);
+  }
+
+  .card-body { flex: 1; }
+
+  .card-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .card-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    align-self: flex-start;
+  }
+
+  .card[data-color="perf"] .card-tag {
+    background: rgba(255,121,0,0.12);
+    color: var(--orange-light);
+  }
+
+  .card[data-color="challenge"] .card-tag {
+    background: rgba(59,130,246,0.12);
+    color: #60A5FA;
+  }
+
+  /* Coming soon card */
+  .card.coming-soon {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .card.coming-soon::after {
+    content: 'Bientôt';
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  .footer-brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  .footer-brand span { color: var(--orange); }
+
+  .footer-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 300;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mobile */
+  @media (max-width: 480px) {
+    .container { padding: 40px 16px 60px; }
+    .header { margin-bottom: 48px; }
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-eyebrow">
+      <div class="dot"></div>
+      <span class="eyebrow-text">Orange Boutique</span>
+    </div>
+    <h1>Mes <span>Apps</span></h1>
+    <p class="header-sub">Accédez à tous vos outils boutique depuis un seul endroit.</p>
+  </header>
+
+  <!-- Catégorie Performance -->
+  <div class="category">
+    <div class="category-label">
+      <span>Performance</span>
+      <div class="category-line"></div>
+    </div>
+    <div class="cards">
+
+      <a href="https://FSQLOS.github.io/orangeperf" target="_blank" class="card" data-color="perf">
+        <div class="card-top">
+          <div class="card-icon">📊</div>
+          <div class="card-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 17L17 7M17 7H7M17 7v10"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Dashboard Perf</div>
+          <div class="card-desc">Suivi des ventes en temps réel — terminaux, forfaits, accessoires et taux assurance par conseiller.</div>
+        </div>
+        <span class="card-tag">📱 Mobile · Box · Assur</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Catégorie Animation -->
+  <div class="category">
+    <div class="category-label">
+      <span>Animation</span>
+      <div class="category-line"></div>
+    </div>
+    <div class="cards">
+
+      <a href="#" target="_blank" class="card" data-color="challenge" id="challenge-card">
+        <div class="card-top">
+          <div class="card-icon">🏆</div>
+          <div class="card-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 17L17 7M17 7H7M17 7v10"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-name">Dashboard Challenge</div>
+          <div class="card-desc">Tableau de bord des challenges boutique — classements, objectifs et progression de l'équipe.</div>
+        </div>
+        <span class="card-tag">🎯 Challenges · Équipe</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-brand"><span>●</span> Hub Boutique</div>
+    <div class="footer-count">2 applications</div>
+  </footer>
+
+</div>
+</body>
+</html>
