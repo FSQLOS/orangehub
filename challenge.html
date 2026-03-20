@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Orange - Ultimate Edition</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        :root { 
+            --orange: #FF7900; --black: #000; --white: #fff; --grey: #f4f4f4; --red: #db0000;
+            --price-input-bg: #fffbf5; --orange-light: #FFAC66; --border-color: #e0e0e0;
+        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: var(--grey); color: #333; }
+        
+        header { background: var(--black); color: var(--white); padding: 10px; text-align: center; border-bottom: 4px solid var(--orange); }
+        
+        /* Recherche Globale */
+        .search-container { background: #333; padding: 12px; display: flex; justify-content: center; position: sticky; top: 0; z-index: 101; }
+        #searchInput { width: 90%; max-width: 550px; padding: 10px 20px; border-radius: 25px; border: none; font-size: 1rem; outline: none; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+        /* Navigation */
+        .nav { display: flex; background: var(--white); justify-content: center; position: sticky; top: 58px; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-wrap: wrap; }
+        .nav-btn { padding: 15px 20px; cursor: pointer; border: none; background: none; font-weight: bold; font-size: 0.85rem; color: #666; text-transform: uppercase; transition: 0.3s; }
+        .nav-btn.active { color: var(--orange); border-bottom: 4px solid var(--orange); }
+        .nav-btn-calc { color: #27ae60; border-left: 1px solid #eee; }
+        .nav-btn-results { color: #007ad9; display: none; }
+
+        .container { padding: 20px; max-width: 1200px; margin: auto; }
+        .tab-content { display: none !important; }
+        .tab-content.active { display: block !important; }
+        .grid.active, .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+
+        /* --- PAGE D'ACCUEIL STYLE V7.1 --- */
+        .welcome-box { text-align: center; padding: 25px; background: var(--black); color: white; border-radius: 8px; margin-bottom: 25px; border-left: 6px solid var(--orange); }
+        .form-card { background: var(--white); padding: 25px; border-radius: 12px; border: 1px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 240px; display: flex; flex-direction: column; }
+        label { font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input, select, .btn-add { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; }
+        .btn-add { background: var(--orange); color: var(--white); border: none; font-weight: bold; cursor: pointer; margin-top: 15px; padding: 15px; font-size: 1rem; }
+        .sync-row { margin-top: 20px; padding-top: 20px; border-top: 1px dashed #ddd; display: flex; gap: 10px; }
+
+        /* --- CALCULATEUR V53 --- */
+        .calc-wrapper { background: var(--white); padding: 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        .calc-h2 { color: var(--orange); border-bottom: 2px solid var(--orange-light); padding-bottom: 8px; margin-top: 30px; font-size: 1.4em; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 6px; background: #fdfdfd; }
+        .price-input-row { background-color: var(--price-input-bg); border: 1px dashed var(--orange-light); }
+        .calc-input-num { width: 100px; text-align: right; font-weight: 700; color: var(--orange); border: 1px solid var(--orange-light); padding: 5px; border-radius: 4px; }
+        .taux-zero-row { padding: 12px; border: 1px solid var(--orange); border-radius: 6px; background-color: #ffe6cc; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: var(--orange); }
+        .result-box { background: #fff; border: 2px solid var(--orange); padding: 20px; border-radius: 12px; margin-top: 30px; }
+        .result-line { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.05em; }
+        .total-price { font-size: 1.6em; font-weight: 700; color: #d84315; border-top: 2px dashed var(--orange-light); padding-top: 15px; margin-top: 15px; }
+        .highlight-economy { font-size: 1.3em; font-weight: 700; color: green; background-color: #e6ffe6; padding: 10px; border-radius: 6px; margin: 15px 0; }
+
+        /* --- CATALOGUE --- */
+        .offer-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 2px solid transparent; display: flex; flex-direction: column; position: relative; height: 100%; transition: 0.2s; }
+        .promo-badge { position: absolute; top: 10px; left: 10px; background: var(--red); color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 1.1rem; z-index: 5; }
+        .offer-thumb { height: 160px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .offer-thumb img, .offer-thumb canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .offer-body { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; text-align: center; }
+        .offer-model { font-size: 0.8rem; color: var(--orange); font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
+        .offer-title { font-size: 0.95rem; font-weight: 800; margin-bottom: 10px; min-height: 40px; }
+        .btn-open { background: var(--black); color: white; border: none; padding: 10px; cursor: pointer; border-radius: 6px; font-weight: bold; width: 100%; margin-top: 10px; }
+        .btn-del { color: #bbb; background: none; border: none; font-size: 0.65rem; cursor: pointer; margin-top: 8px; text-decoration: underline; }
+
+        /* Modal */
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; flex-direction: column; }
+        #modal-header { background: white; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--orange); }
+        #modal-body { flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        iframe { width: 95%; height: 98%; border: none; }
+
+        /* --- DASHBOARD CONSTRUCTEUR --- */
+        .brand-dash { background: var(--white); padding: 15px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 4px solid var(--orange); display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        .dash-metric { flex: 1; min-width: 220px; background: var(--grey); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #ddd; }
+        .dash-metric h4 { margin: 0 0 10px 0; font-size: 0.95rem; color: #444; text-transform: uppercase; }
+        .dash-inputs { display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: bold; color: #666; }
+        .dash-inputs input { width: 70px; padding: 6px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; color: var(--black); }
+        .dash-inputs input::placeholder { font-weight: normal; font-size: 0.8rem; }
+        .dash-ro { font-weight: 900; font-size: 1.3rem; color: var(--orange); margin-top: 10px; display: inline-block; background: #fff; padding: 5px 15px; border-radius: 20px; border: 1px solid var(--orange-light); }
+    </style>
+</head>
+<body>
+
+<header><h1>Dashboard Performance - Boutique Orange</h1></header>
+
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Recherche globale (ex: buds samsung, reprise s24...)" onkeyup="globalSearch()">
+</div>
+
+<div class="nav">
+    <button class="nav-btn nav-btn-home active" onclick="switchTab(event, 'Accueil')">🏠 Accueil</button>
+    <button class="nav-btn nav-btn-calc" onclick="switchTab(event, 'Calculateur')">📊 Calculateur</button>
+    <button id="btn-results" class="nav-btn nav-btn-results" onclick="switchTab(event, 'Resultats')">🔍 Résultats</button>
+    <button class="nav-btn" onclick="switchTab(event, 'BonusReprise')">💰 Bonus Reprise</button>
+    <button class="nav-btn" onclick="switchTab(event, 'Samsung')">Samsung</button>
+    <button class="nav-btn" onclick="switchTab(event, 'Honor')">Honor</button>
+    <button class="nav-btn" onclick="switchTab(event, 'Xiaomi')">Xiaomi</button>
+    <button class="nav-btn" onclick="switchTab(event, 'Google')">Google</button>
+    <button class="nav-btn" onclick="switchTab(event, 'ChallengeTrimestriel')">Challenge trimestriel</button>
+    <button class="nav-btn" onclick="switchTab(event, 'AutreChallenge')">Autre challenge</button>
+</div>
+
+<div class="container">
+    
+    <div id="Accueil" class="tab-content active">
+        <div class="welcome-box">
+            <h2 style="margin:0">Bonjour Conseiller ! 🐒</h2>
+            <p style="margin:5px 0 0 0; opacity:0.8; font-size:0.9rem">Centralisez vos offres et exportez la base pour les autres PC de la boutique.</p>
+        </div>
+
+        <div class="form-card">
+            <div class="form-row">
+                <div class="form-group"><label>Montant Promo (ex: -100€)</label><input type="text" id="offerPromo" placeholder="Argument choc"></div>
+                <div class="form-group"><label>Modèle (ex: S24 Ultra)</label><input type="text" id="offerModel" placeholder="Modèle précis"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Titre de l'offre</label><input type="text" id="offerName" placeholder="Titre interne"></div>
+                <div class="form-group">
+                    <label>Rangement</label>
+                    <select id="offerBrand">
+                        <option value="BonusReprise">💰 Bonus Reprise</option>
+                        <option value="Samsung">Samsung</option>
+                        <option value="Honor">Honor</option>
+                        <option value="Xiaomi">Xiaomi</option>
+                        <option value="Google">Google</option>
+                        <option value="ChallengeTrimestriel">Challenge trimestriel</option>
+                        <option value="AutreChallenge">Autre challenge</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Date début</label><input type="date" id="startDate"></div>
+                <div class="form-group"><label>Date fin</label><input type="date" id="endDate"></div>
+                <div class="form-group"><label>Fichier (PDF/IMG)</label><input type="file" id="offerFile" accept="image/*,application/pdf"></div>
+            </div>
+            <button class="btn-add" onclick="handleSave()">💾 AJOUTER AU CATALOGUE</button>
+
+            <div class="sync-row">
+                <button onclick="exportDatabase()" style="font-size:0.75rem; cursor:pointer;">📤 Exporter base</button>
+                <button onclick="document.getElementById('importFile').click()" style="font-size:0.75rem; cursor:pointer;">📥 Importer base</button>
+                <input type="file" id="importFile" style="display:none" onchange="importDatabase(event)">
+            </div>
+        </div>
+    </div>
+
+    <div id="Calculateur" class="tab-content">
+        <div class="calc-wrapper">
+            <h2 style="text-align:center; color:var(--orange); margin-top:0;">Simulateur de Financement</h2>
+            
+            <h2 class="calc-h2">Prix Mobile & Forfait</h2>
+            <div class="item-row price-input-row">
+                <label>Prix Nu ou avec forfait (€)</label>
+                <input type="number" id="price-forfait-mobile" class="calc-input-num" oninput="calculate()">
+            </div>
+            <div class="item-row custom-price-row">
+                <label>Accessoire personnalisé (Buds, PWB...)</label>
+                <input type="number" id="custom-mobile" class="calc-input-num" oninput="calculate()">
+            </div>
+            <div class="item-row price-input-row">
+                <label>Prix du Forfait (€)</label>
+                <input type="number" id="price-forfait" class="calc-input-num" oninput="calculate()">
+            </div>
+
+            <h2 class="calc-h2">Accessoires Communs</h2>
+            <div class="item-row">
+                <label>Coque</label>
+                <select id="coque-select" onchange="calculate()">
+                    <option value="0.00">Aucune</option>
+                    <option value="19.99">QDOS (19,99 €)</option>
+                    <option value="34.99" selected>Force Case (34,99 €)</option>
+                    <option value="39.99">Force Case (39,99 €)</option>
+                </select>
+            </div>
+            <div class="item-row">
+                <label>Verre trempé</label>
+                <select id="verre-select" onchange="calculate()">
+                    <option value="0.00">Aucun</option>
+                    <option value="19.99">QDOS (19,99 €)</option>
+                    <option value="34.99" selected>Force Glass (34,99 €)</option>
+                    <option value="39.99">Force Glass (39,99 €)</option>
+                </select>
+            </div>
+            <div class="item-row"><label><input type="checkbox" id="chargeur" checked onchange="calculate()"> Chargeur</label><span>24,99 €</span></div>
+            <div class="item-row"><label><input type="checkbox" id="lentille" checked onchange="calculate()"> Lentilles</label><span>9,99 €</span></div>
+            <div class="item-row">
+                <label><input type="radio" name="spray_option" value="12.99" checked onchange="calculate()"> Spray Force</label>
+                <label><input type="radio" name="spray_option" value="0.00" onchange="calculate()"> Sans Spray</label>
+            </div>
+
+            <h2 class="calc-h2">Réductions & Services</h2>
+            <div class="item-row price-input-row"><label>Apport Personnel</label><input type="number" id="apport-personnel" class="calc-input-num" oninput="calculate()"></div>
+            <div class="item-row"><label>Reprise mobile</label><input type="number" id="reprise-mobile" class="calc-input-num" oninput="calculate()"></div>
+            <div class="item-row"><label>Boost Reprise</label><input type="number" id="boost-reprise" class="calc-input-num" oninput="calculate()"></div>
+            <div class="item-row"><label>Valeur ODR</label><input type="number" id="valeur-odr" class="calc-input-num" oninput="calculate()"></div>
+
+            <div class="item-row">
+                <label>Prestation :</label>
+                <select id="prestation-select" onchange="calculate()">
+                    <option value="0.00">Aucune</option>
+                    <option value="9.00">Flash (9€)</option>
+                    <option value="24.00">Experte (24€)</option>
+                    <option value="39.00" selected>Atelier (39€)</option>
+                </select>
+            </div>
+
+            <h2 class="calc-h2">Financement & Assurance</h2>
+            <div class="taux-zero-row">
+                <label><input type="checkbox" id="taux-zero" onchange="calculate()"> Taux 0% (Promotion)</label>
+                <span>TAEG 15% annulé</span>
+            </div>
+            <div style="text-align:center; padding:10px;">
+                <label>Durée : <span id="slider-value" style="font-weight:bold; color:var(--orange)">24 mois</span></label><br>
+                <input type="range" id="duree-slider" min="4" max="48" value="24" oninput="updateSliderUI(); calculate();" style="width:100%">
+            </div>
+            <div class="item-row">
+                <label>Assurance mensuelle :</label>
+                <select id="assurance-select" onchange="calculate()">
+                    <option value="0.00">Aucune</option>
+                    <option value="3.00">Initiale (3€)</option>
+                    <option value="6.00">Intense (6€)</option>
+                    <option value="9.00">Infinie (9€)</option>
+                    <option value="12.00" selected>Internet Mobile (12€)</option>
+                </select>
+            </div>
+
+            <div class="result-box">
+                <div class="result-line"><span>Montant à financer :</span> <span id="montantFinance">0 €</span></div>
+                <div class="result-line highlight-economy"><span>Économie Client Totale :</span> <span id="economieClientTotale">0 €</span></div>
+                <div class="result-line total-price"><span>Total Mensuel :</span> <span id="paiementMensuel">0 €</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="Resultats" class="tab-content grid"></div>
+    <div id="BonusReprise" class="tab-content grid"></div>
+    <div id="ChallengeTrimestriel" class="tab-content grid"></div>
+    <div id="AutreChallenge" class="tab-content grid"></div>
+
+    <div id="Samsung" class="tab-content">
+        <div class="brand-dash">
+            <h3 style="width:100%; margin:0 0 10px 0; color:var(--orange); text-align:center;">🏆 Dashboard Samsung</h3>
+            <div class="dash-metric">
+                <h4>Volumes Mobiles</h4>
+                <div class="dash-inputs">
+                    <input type="number" id="Samsung-vol-r" placeholder="R" oninput="updateDash('Samsung')"> / 
+                    <input type="number" id="Samsung-vol-o" placeholder="O" oninput="updateDash('Samsung')">
+                </div>
+                <span class="dash-ro" id="Samsung-vol-ro">0% R/O</span>
+            </div>
+            <div class="dash-metric">
+                <h4>Objets Connectés</h4>
+                <div class="dash-inputs">
+                    <input type="number" id="Samsung-obj-r" placeholder="R" oninput="updateDash('Samsung')"> / 
+                    <input type="number" id="Samsung-obj-o" placeholder="O" oninput="updateDash('Samsung')">
+                </div>
+                <span class="dash-ro" id="Samsung-obj-ro">0% R/O</span>
+            </div>
+        </div>
+        <div id="grid-Samsung" class="grid"></div>
+    </div>
+
+    <div id="Honor" class="tab-content">
+        <div class="brand-dash">
+            <h3 style="width:100%; margin:0 0 10px 0; color:var(--orange); text-align:center;">🏆 Dashboard Honor</h3>
+            <div class="dash-metric">
+                <h4>Volumes Mobiles</h4>
+                <div class="dash-inputs">
+                    <input type="number" id="Honor-vol-r" placeholder="R" oninput="updateDash('Honor')"> / 
+                    <input type="number" id="Honor-vol-o" placeholder="O" oninput="updateDash('Honor')">
+                </div>
+                <span class="dash-ro" id="Honor-vol-ro">0% R/O</span>
+            </div>
+            <div class="dash-metric">
+                <h4>Objets Connectés</h4>
+                <div class="dash-inputs">
+                    <input type="number" id="Honor-obj-r" placeholder="R" oninput="updateDash('Honor')"> / 
+                    <input type="number" id="Honor-obj-o" placeholder="O" oninput="updateDash('Honor')">
+                </div>
+                <span class="dash-ro" id="Honor-obj-ro">0% R/O</span>
+            </div>
+        </div>
+        <div id="grid-Honor" class="grid"></div>
+    </div>
+
+    <div id="Xiaomi" class="tab-content">
+        <div class="brand-dash">
+            <h3 style="width:100%; margin:0 0 10px 0; color:var(--orange); text-align:center;">🏆 Dashboard Xiaomi</h3>
+            <div class="dash-metric">
+                <h4>Volumes Mobiles</h4>
+                <div class="dash-inputs">
+                    <input type="number" id="Xiaomi-vol-r" placeholder="R" oninput="updateDash('Xiaomi')"> / 
+                    <input type="number" id="Xiaomi-vol-o" placeholder="O" oninput="updateDash('Xiaomi')">
+                </div>
+                <span class="dash-ro" id="Xiaomi-vol-ro">0% R/O</span>
+            </div>
+            <div class="dash-metric">
+                <h4>Objets Connectés</h4>
+                <div class="dash-inputs">
+                    <input type="number" id="Xiaomi-obj-r" placeholder="R" oninput="updateDash('Xiaomi')"> / 
+                    <input type="number" id="Xiaomi-obj-o" placeholder="O" oninput="updateDash('Xiaomi')">
+                </div>
+                <span class="dash-ro" id="Xiaomi-obj-ro">0% R/O</span>
+            </div>
+        </div>
+        <div id="grid-Xiaomi" class="grid"></div>
+    </div>
+
+    <div id="Google" class="tab-content">
+        <div class="brand-dash">
+            <h3 style="width:100%; margin:0 0 10px 0; color:var(--orange); text-align:center;">🏆 Dashboard Google</h3>
+            <div class="dash-metric">
+                <h4>Volumes Mobiles</h4>
+                <div class="dash-inputs">
+                    <input type="number" id="Google-vol-r" placeholder="R" oninput="updateDash('Google')"> / 
+                    <input type="number" id="Google-vol-o" placeholder="O" oninput="updateDash('Google')">
+                </div>
+                <span class="dash-ro" id="Google-vol-ro">0% R/O</span>
+            </div>
+            <div class="dash-metric">
+                <h4>Objets Connectés</h4>
+                <div class="dash-inputs">
+                    <input type="number" id="Google-obj-r" placeholder="R" oninput="updateDash('Google')"> / 
+                    <input type="number" id="Google-obj-o" placeholder="O" oninput="updateDash('Google')">
+                </div>
+                <span class="dash-ro" id="Google-obj-ro">0% R/O</span>
+            </div>
+        </div>
+        <div id="grid-Google" class="grid"></div>
+    </div>
+
+</div>
+
+<div id="modal">
+    <div id="modal-header"><span id="modal-title" style="font-weight:bold"></span><button onclick="closeViewer()">FERMER X</button></div>
+    <div id="modal-body"></div>
+</div>
+
+<script>
+    const pdfjsLib = window.pdfjsLib;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let db;
+    let currentOffers = [];
+
+    const request = indexedDB.open("OrangeChallengesDB", 4);
+    request.onsuccess = (e) => { db = e.target.result; cleanAndDisplay(); };
+    request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains("offers")) db.createObjectStore("offers", { keyPath: "id", autoIncrement: true });
+    };
+
+    function switchTab(event, tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        if (event) event.currentTarget.classList.add('active');
+        if (tabId !== 'Resultats') { document.getElementById('searchInput').value = ''; document.getElementById('btn-results').style.display = 'none'; }
+    }
+
+    // --- LOGIQUE DASHBOARD CONSTRUCTEURS ---
+    function updateDash(brand) {
+        const metrics = ['vol', 'obj']; // Uniquement volumes et objets
+        const data = {};
+        
+        metrics.forEach(m => {
+            const r = parseFloat(document.getElementById(`${brand}-${m}-r`).value) || 0;
+            const o = parseFloat(document.getElementById(`${brand}-${m}-o`).value) || 0;
+            data[`${m}-r`] = r;
+            data[`${m}-o`] = o;
+            
+            const ro = o > 0 ? ((r / o) * 100).toFixed(1) : 0;
+            document.getElementById(`${brand}-${m}-ro`).textContent = ro + '% R/O';
+        });
+        
+        localStorage.setItem(`dash_${brand}`, JSON.stringify(data));
+    }
+
+    function loadDashboards() {
+        ['Samsung', 'Honor', 'Xiaomi', 'Google'].forEach(brand => {
+            const data = JSON.parse(localStorage.getItem(`dash_${brand}`)) || {};
+            const metrics = ['vol', 'obj'];
+            metrics.forEach(m => {
+                if(data[`${m}-r`] !== undefined && data[`${m}-r`] !== 0) document.getElementById(`${brand}-${m}-r`).value = data[`${m}-r`];
+                if(data[`${m}-o`] !== undefined && data[`${m}-o`] !== 0) document.getElementById(`${brand}-${m}-o`).value = data[`${m}-o`];
+            });
+            updateDash(brand);
+        });
+    }
+
+    // --- CALCULS FINANCE V53 ---
+    function updateSliderUI() { document.getElementById('slider-value').textContent = document.getElementById('duree-slider').value + ' mois'; }
+
+    function calculate() {
+        const isTauxZero = document.getElementById('taux-zero').checked;
+        const taeg = isTauxZero ? 0.00 : 0.15;
+        const mobile = parseFloat(document.getElementById('price-forfait-mobile').value) || 0;
+        const forfait = parseFloat(document.getElementById('price-forfait').value) || 0;
+        const duree = parseInt(document.getElementById('duree-slider').value);
+        
+        let acc = parseFloat(document.getElementById('coque-select').value) + parseFloat(document.getElementById('verre-select').value);
+        if (document.getElementById('chargeur').checked) acc += 24.99;
+        if (document.getElementById('lentille').checked) acc += 9.99;
+        acc += parseFloat(document.querySelector('input[name="spray_option"]:checked').value);
+        acc += parseFloat(document.getElementById('custom-mobile').value) || 0;
+        acc += parseFloat(document.getElementById('prestation-select').value);
+
+        const apport = parseFloat(document.getElementById('apport-personnel').value) || 0;
+        const reprise = parseFloat(document.getElementById('reprise-mobile').value) || 0;
+        const boost = parseFloat(document.getElementById('boost-reprise').value) || 0;
+        const odr = parseFloat(document.getElementById('valeur-odr').value) || 0;
+
+        const montantFinance = Math.max(0, (mobile + acc) - (apport + reprise + boost));
+        
+        let mensuCredit = 0;
+        if (montantFinance > 0) {
+            if (taeg === 0) { mensuCredit = montantFinance / duree; } 
+            else {
+                const tm = taeg / 12;
+                mensuCredit = montantFinance * (tm * Math.pow(1 + tm, duree)) / (Math.pow(1 + tm, duree) - 1);
+            }
+        }
+
+        const assurance = parseFloat(document.getElementById('assurance-select').value);
+
+        document.getElementById('montantFinance').textContent = montantFinance.toFixed(2) + ' €';
+        document.getElementById('economieClientTotale').textContent = (reprise + boost + odr).toFixed(2) + ' €';
+        document.getElementById('paiementMensuel').textContent = (mensuCredit + assurance + forfait).toFixed(2) + ' € / mois';
+    }
+
+    // --- LOGIQUE CHALLENGES ---
+    function handleSave() {
+        const file = document.getElementById('offerFile').files[0];
+        if (!file || !document.getElementById('endDate').value) return alert("Champs manquants !");
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const offer = {
+                name: document.getElementById('offerName').value, promo: document.getElementById('offerPromo').value,
+                model: document.getElementById('offerModel').value, brand: document.getElementById('offerBrand').value,
+                endDate: document.getElementById('endDate').value, type: file.type, data: e.target.result
+            };
+            db.transaction("offers", "readwrite").objectStore("offers").add(offer).onsuccess = () => { alert("Ajouté !"); cleanAndDisplay(); };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function cleanAndDisplay() {
+        const today = new Date().toISOString().split('T')[0];
+        currentOffers = [];
+        
+        // Nettoyage des onglets simples
+        ['BonusReprise', 'ChallengeTrimestriel', 'AutreChallenge', 'Resultats'].forEach(id => document.getElementById(id).innerHTML = '');
+        // Nettoyage spécifique des grilles des constructeurs
+        ['Samsung', 'Honor', 'Xiaomi', 'Google'].forEach(id => document.getElementById(`grid-${id}`).innerHTML = '');
+
+        db.transaction("offers", "readwrite").objectStore("offers").openCursor().onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+                if (cursor.value.endDate < today) { cursor.delete(); } 
+                else { currentOffers.push(cursor.value); renderCard(cursor.value, cursor.value.brand); }
+                cursor.continue();
+            }
+        };
+    }
+
+    async function renderCard(offer, containerId) {
+        // Sélectionne le conteneur cible (grille spécifique pour les constructeurs ou onglet simple pour les autres)
+        const container = document.getElementById(`grid-${containerId}`) || document.getElementById(containerId);
+        if(!container) return;
+        
+        const card = document.createElement('div');
+        card.className = 'offer-card';
+        const thumbId = `thumb-${containerId}-${offer.id}`;
+        card.innerHTML = `
+            ${offer.promo ? `<div class="promo-badge">${offer.promo}</div>` : ''}
+            <div class="offer-thumb" id="${thumbId}">...</div>
+            <div class="offer-body">
+                <div class="offer-model">${offer.model || offer.brand}</div>
+                <strong class="offer-title">${offer.name}</strong>
+                <div class="date-box">Jusqu'au : ${offer.endDate.split('-').reverse().join('/')}</div>
+                <button class="btn-open" onclick="openViewer('${offer.data}', '${offer.type}', '${offer.name.replace(/'/g, "\\'")}')">CONSULTER</button>
+                <button class="btn-del" onclick="deleteOffer(${offer.id})">Supprimer</button>
+            </div>
+        `;
+        container.appendChild(card);
+        const thumbBox = document.getElementById(thumbId);
+        if (offer.type === "application/pdf") {
+            const pdf = await pdfjsLib.getDocument(offer.data).promise;
+            const page = await pdf.getPage(1);
+            const canvas = document.createElement('canvas');
+            const viewport = page.getViewport({ scale: 0.3 });
+            canvas.height = viewport.height; canvas.width = viewport.width;
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+            thumbBox.innerHTML = ''; thumbBox.appendChild(canvas);
+        } else { thumbBox.innerHTML = `<img src="${offer.data}">`; }
+    }
+
+    function globalSearch() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        const btn = document.getElementById('btn-results');
+        if (query.length < 2) { btn.style.display = 'none'; return; }
+        btn.style.display = 'block'; switchTab(null, 'Resultats');
+        const res = document.getElementById('Resultats'); res.innerHTML = '';
+        const kws = query.split(' ');
+        const matches = currentOffers.filter(off => {
+            const content = `${off.name} ${off.model} ${off.brand} ${off.promo}`.toLowerCase();
+            return kws.every(kw => content.includes(kw));
+        });
+        matches.forEach(m => renderCard(m, 'Resultats'));
+    }
+
+    function deleteOffer(id) { if(confirm("Supprimer ?")) db.transaction("offers", "readwrite").objectStore("offers").delete(id).onsuccess = () => cleanAndDisplay(); }
+    
+    function openViewer(data, type, title) {
+        const modal = document.getElementById('modal');
+        document.getElementById('modal-title').textContent = title;
+        modal.style.display = 'flex';
+        document.getElementById('modal-body').innerHTML = type === "application/pdf" ? `<iframe src="${data}"></iframe>` : `<img src="${data}" id="modal-img">`;
+    }
+    
+    function closeViewer() { document.getElementById('modal').style.display = 'none'; }
+    
+    function exportDatabase() {
+        db.transaction("offers").objectStore("offers").getAll().onsuccess = (e) => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(e.target.result)], {type:"application/json"}));
+            a.download = `Catalogue.json`; a.click();
+        };
+    }
+    
+    function importDatabase(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (!Array.isArray(importedData)) {
+                    alert("Le fichier JSON n'est pas au bon format.");
+                    return;
+                }
+
+                const tx = db.transaction("offers", "readwrite");
+                const store = tx.objectStore("offers");
+                const clearRequest = store.clear();
+
+                clearRequest.onsuccess = () => {
+                    importedData.forEach(item => {
+                        delete item.id; 
+                        store.add(item);
+                    });
+                };
+
+                tx.oncomplete = () => {
+                    alert("✅ Importation réussie ! Votre catalogue est à jour.");
+                    location.reload(); 
+                };
+
+                tx.onerror = (err) => {
+                    alert("Erreur lors de l'écriture des données.");
+                };
+
+            } catch (err) {
+                alert("Impossible de lire le fichier. Est-ce bien un fichier .json exporté du dashboard ?");
+            }
+        };
+        reader.readAsText(file);
+        
+        event.target.value = '';
+    }
+    
+    window.onload = () => { 
+        calculate(); 
+        loadDashboards(); // Charge et calcule les stats au lancement
+    };
+</script>
+</body>
+</html>
