@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur Orange - V53 (Ergonomie Finale)</title>
+    <style>
+        /* Variables CSS pour les couleurs Orange */
+        :root {
+            --orange-primary: #FF7900; 
+            --orange-light: #FFAC66;
+            --gray-background: #f8f8f8;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+            --shadow-light: rgba(0,0,0,0.08);
+            --price-input-bg: #fffbf5; 
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f0f0f0; 
+            background-image: url('background-orange.jpg'); 
+            background-size: cover; 
+            background-position: center center; 
+            background-repeat: no-repeat; 
+            background-attachment: fixed;
+            padding: 30px; 
+            color: var(--text-color); 
+            line-height: 1.6;
+        }
+        .container { 
+            max-width: 700px; 
+            margin: 0 auto; 
+            background-color: rgba(255, 255, 255, 0.9); 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px var(--shadow-light); 
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header img {
+            height: 45px; 
+            margin-right: 15px;
+        }
+        h1 { 
+            color: var(--orange-primary); 
+            text-align: center; 
+            margin: 0;
+            font-size: 2em;
+            flex-grow: 1;
+        }
+        h2 { 
+            color: var(--orange-primary); 
+            margin-top: 35px; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid var(--orange-light);
+            padding-bottom: 8px;
+            font-size: 1.4em;
+        }
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+        }
+        /* Styles pour les inputs */
+        input[type="checkbox"], input[type="radio"] { margin-right: 10px; transform: scale(1.1); }
+        .item-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 15px; 
+            padding: 12px 15px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            background-color: #fdfdfd;
+        }
+        .item-row:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-color: var(--orange-light);
+        }
+        .item-price { 
+            font-weight: 600; 
+            color: var(--text-color); 
+            font-size: 1.1em;
+        }
+
+        /* Styles pour les menus déroulants et inputs */
+        select {
+            padding: 8px;
+            border: 1px solid var(--orange-light);
+            border-radius: 4px;
+            font-size: 1em;
+            margin-left: auto; 
+        }
+
+        /* Input de prix (Forfait et Personnalisé) */
+        .price-input-row,
+        .custom-price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: var(--price-input-bg);
+            border: 1px dashed var(--orange-light);
+            border-radius: 6px;
+            margin-bottom: 15px; 
+        }
+        .custom-price-row label {
+             margin-bottom: 0; 
+             flex-grow: 1;
+        }
+        .price-input-row input[type="number"],
+        .custom-price-row input[type="number"] {
+            width: 100px;
+            text-align: right;
+            padding: 8px;
+            border: 1px solid var(--orange-light);
+            border-radius: 4px;
+            font-size: 1em;
+            font-weight: 700;
+            color: var(--orange-primary);
+        }
+        .price-input-row input[type="number"]:focus,
+        .custom-price-row input[type="number"]:focus {
+            outline: none;
+            border-color: var(--orange-primary);
+            box-shadow: 0 0 0 3px rgba(255,121,0,0.3);
+        }
+        
+        /* ------------------------------------------- */
+        /* >>> CACHER LES FLÈCHES D'INPUT NUMBER <<< */
+        /* ------------------------------------------- */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+        /* ------------------------------------------- */
+
+        /* Styles de Résultat */
+        .result-line { margin-bottom: 12px; display: flex; justify-content: space-between; font-size: 1.05em; }
+        .highlight-economy { font-size: 1.4em; font-weight: 700; color: green; background-color: #e6ffe6; padding: 10px; border-radius: 4px; margin-top: 15px; }
+        .odr-links { padding: 10px 15px; text-align: center; border-top: 1px solid var(--border-color); margin-top: -15px; margin-bottom: 15px; }
+        .odr-links a { font-size: 1.1em; display: inline-block; margin: 5px 10px; color: var(--orange-primary); font-weight: 700; text-decoration: underline; }
+        
+        /* PRIX FINAL */
+        .result-box .total-price { 
+            font-size: 1.8em; 
+            font-weight: 700; 
+            color: #d84315; 
+            margin-top: 20px; 
+            padding-top: 15px; 
+            border-top: 2px dashed var(--orange-light); 
+        }
+        
+        /* Style Taux 0% */
+        .taux-zero-row {
+            padding: 12px 15px; 
+            border: 1px solid var(--orange-primary); 
+            border-radius: 6px; 
+            background-color: #ffe6cc; 
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
+            color: var(--orange-primary);
+        }
+        .taux-zero-row input[type="checkbox"] {
+            transform: scale(1.3);
+        }
+        
+        /* STYLES DU SLIDER AGRANDI */
+        .slider-container input[type="range"] { 
+            height: 15px;
+            width: 500px; 
+            margin: 0 20px; 
+            -webkit-appearance: none; 
+            background: #ddd; 
+            border-radius: 8px; 
+            outline: none; 
+            opacity: 0.9; 
+            transition: opacity .2s; 
+        }
+        /* Ajustement du pouce (thumb) du slider */
+        .slider-container input[type="range"]::-webkit-slider-thumb { 
+            -webkit-appearance: none; 
+            appearance: none; 
+            width: 20px; 
+            height: 20px; 
+            border-radius: 50%; 
+            background: var(--orange-primary); 
+            cursor: grab; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+            margin-top: -7.5px; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <img src="https://tse4.mm.bing.net/th/id/OIP.kubpv5Pe33rZ2M8bJemZHwHaEK?cb=ucfimg2&ucfimg=1&rs=1&pid=ImgDetMain&o=7&rm=3" alt="Logo Orange">
+        <h1>Calculateur de Financement Orange</h1>
+    </div>
+
+    <div class="tab-controls">
+        <label>Mobile choisi</label>
+    </div>
+
+    <div class="tab-content">
+        <div id="content-mobile" class="tab-pane">
+            <h2 style="margin-top: 0;">Prix du Mobile choisi </h2>
+            
+            <div class="item-row price-input-row">
+                <label for="price-forfait-mobile">Prix Nu ou avec forfait</label>
+                <input type="number" id="price-forfait-mobile" oninput="calculate()">
+            </div>
+            
+            <div class="item-row custom-price-row">
+                <label for="custom-mobile">Accessoire personnalisé (Buds, PWB ...)</label>
+                <input type="number" id="custom-mobile" oninput="calculate()">
+            </div>
+        </div>
+    </div>
+    
+    
+    <h2>Prix du Forfait</h2>
+    <div class="item-row price-input-row">
+        <label for="price-forfait">Prix du Forfait</label>
+        <input type="number" id="price-forfait" oninput="calculate()">
+    </div>
+    
+    <h2>Accessoires Communs</h2>
+    <div class="item-row">
+        <label for="coque-select">Coque de protection (Choix)</label>
+        <select id="coque-select" onchange="calculate()">
+            <option value="0.00">Aucune Coque (0,00 €)</option>
+            <option value="19.99">Coque QDOS (19,99 €)</option>
+            <option value="24.99">Coque Force Case (24,99 €)</option>
+            <option value="34.99" selected>Coque Force Case (34,99 €)</option>
+            <option value="39.99">Coque Force Case (39,99 €)</option>
+        </select>
+    </div>
+    <div class="item-row">
+        <label for="verre-select">Verre trempé (Choix)</label>
+        <select id="verre-select" onchange="calculate()">
+            <option value="0.00">Aucun verre (0,00 €)</option>
+            <option value="19.99">Verre QDOS (19,99 €)</option>
+            <option value="24.99">Verre Force Glass (24,99 €)</option>
+            <option value="34.99" selected>Verre Force Glass (34,99 €)</option>
+            <option value="39.99">Verre Force Glass (39,99 €)</option>
+        </select>
+    </div>
+
+    <div class="item-row">
+        <label><input type="checkbox" id="chargeur" checked onchange="calculate()">Chargeur</label>
+        <span class="item-price">24,99 €</span>
+    </div>
+    <div class="item-row">
+        <label><input type="checkbox" id="lentille" checked onchange="calculate()">Lentille de protection</label>
+        <span class="item-price">9,99 €</span>
+    </div>
+
+    <div class="item-row">
+        <label><input type="radio" name="spray_option" id="spray" value="12.99" checked onchange="calculate()">Spray Force</label>
+        <span class="item-price">12,99 €</span>
+    </div>
+    <div class="item-row">
+        <label><input type="radio" name="spray_option" value="0.00" onchange="calculate()">Pas de Spray</label>
+        <span class="item-price">0,00 €</span>
+    </div>
+    <h2>Réductions et Offres</h2>
+    <div class="item-row custom-price-row price-input-row">
+        <label for="apport-personnel" style="font-weight: 700;">Apport Personnel</label>
+        <input type="number" id="apport-personnel" oninput="calculate()">
+    </div>
+    
+    <div class="item-row custom-price-row">
+        <label for="reprise-mobile">Reprise mobile</label>
+        <input type="number" id="reprise-mobile" oninput="calculate()">
+    </div>
+    <div class="item-row custom-price-row">
+        <label for="boost-reprise">Marge de manoeuvre vendeur</label>
+        <input type="number" id="boost-reprise" oninput="calculate()">
+    </div>
+    <div class="item-row custom-price-row">
+        <label for="valeur-odr">ODR (Offre de Remboursement - Remboursé au client après achat)</label>
+        <input type="number" id="valeur-odr" oninput="calculate()">
+    </div>
+
+    <div class="odr-links">
+        <p style="font-weight: bold; margin: 0 0 5px 0;">Liens rapides vers les ODR :</p>
+        <a href="https://www.samsung.com/fr/offer/cashback/" target="_blank" title="ODR Samsung">Samsung</a>
+        <a href="https://boutique.orange.fr/bon-plan-promo/odr-remboursement/coupon-constructeur/" target="_blank" title="ODR Honor">Honor</a>
+        <a href="https://boutique.orange.fr/bon-plan-promo/odr-remboursement/coupon-constructeur/" target="_blank" title="ODR Google">Google</a>
+        <a href="https://boutique.orange.fr/bon-plan-promo/odr-remboursement/coupon-mobile/" target="_blank" title="ODR Orange">Orange</a> 
+    </div>
+    <h2>Prestations & Services</h2>
+    <div class="prestation-options">
+        <div class="item-row">
+            <label><input type="radio" name="prestation" value="0.00" onchange="calculate()">Aucune prestation</label>
+            <span class="item-price">0,00 €</span>
+        </div>
+        <div class="item-row">
+            <label><input type="radio" name="prestation" value="9.00" onchange="calculate()">Configuration Flash</label>
+            <span class="item-price">9,00 €</span>
+        </div>
+        <div class="item-row">
+            <label><input type="radio" name="prestation" value="24.00" onchange="calculate()">Configuration Experte</label>
+            <span class="item-price">24,00 €</span>
+        </div>
+        <div class="item-row">
+            <label><input type="radio" name="prestation" value="39.00" checked onchange="calculate()">Atelier Smartphone</label>
+            <span class="item-price">39,00 €</span>
+        </div>
+    </div>
+
+
+    <h2>Assurance</h2>
+    <div class="assurance-options">
+        <div class="item-row"><label><input type="radio" name="assurance" value="0" onchange="calculate()">Aucune assurance</label><span class="item-price">0,00 € / mois</span></div>
+        <div class="item-row"><label><input type="radio" name="assurance" value="3" onchange="calculate()">Assurance Initiale</label><span class="item-price">3,00 € / mois</span></div>
+        <div class="item-row"><label><input type="radio" name="assurance" value="6" onchange="calculate()">Assurance Intense</label><span class="item-price">6,00 € / mois</span></label></div>
+        <div class="item-row"><label><input type="radio" name="assurance" value="9" onchange="calculate()">Assurance Infinie</label><span class="item-price">9,00 € / mois</span></div>
+        <div class="item-row"><label><input type="radio" name="assurance" value="12" checked onchange="calculate()">Assurance Internet Mobile</label><span class="item-price">12,00 € / mois</span></div>
+    </div>
+
+    <h2>Option de Financement</h2>
+    
+    <div class="taux-zero-row">
+        <label>
+            <input type="checkbox" id="taux-zero" onchange="calculate()">
+            Taux 0% (Promotion)
+        </label>
+        <span>TAEG 15% annulé</span>
+    </div>
+    
+    <div class="slider-container">
+        <label for="duree-slider">Durée (4 à 48 mois)</label>
+        <input type="range" id="duree-slider" min="4" max="48" value="24" step="1" oninput="updateSliderValue(); calculate();">
+        <span id="slider-value" class="slider-value">24 mois</span>
+    </div>
+    
+    <div class="result-box">
+        <h2>Résumé du Coût</h2>
+        <div class="result-line"><span>Prix Produit :</span> <span id="prixProduitBase"></span></div>
+        
+        <div class="result-line"><span>Accessoires & Prestations :</span> <span id="prixAccessoiresEtPrestations"></span></div>
+        <hr style="border-top: 1px solid var(--orange-light); margin: 15px 0;">
+        <div class="result-line"><span>Apport Personnel (Déduit) :</span> <span id="valeurApport"></span></div>
+        <div class="result-line"><span>Reprise Mobile (Déduite) :</span> <span id="valeurReprise"></span></div>
+        <div class="result-line"><span>Boost Reprise (Déduite) :</span> <span id="valeurBoost"></span></div>
+        <hr style="border-top: 1px solid var(--orange-light); margin: 15px 0;">
+        <div class="result-line total-price"><span>Montant total à financer :</span> <span id="montantFinance"></span></div>
+        <div class="result-line"><span>ODR (Remboursé au client après achat) :</span> <span id="valeurODR"></span></div>
+        <div class="result-line highlight-economy"><span>Économie Client Totale :</span> <span id="economieClientTotale"></span></div>
+        <hr style="border-top: 1px solid var(--orange-light); margin: 15px 0;">
+        <div class="result-line"><span>Frais de Financement (Intérêts) :</span> <span id="fraisFinancement"></span></div>
+        <div class="result-line"><span>Coût Total du Crédit :</span> <span id="coutTotal"></span></div>
+        <hr style="border-top: 1px solid var(--orange-light); margin: 15px 0;">
+        <h3>Coût Mensuel</h3>
+        <div class="result-line"><span>Mensualité du crédit (capital + intérêts) :</span> <span id="mensualiteCredit"></span></div>
+        <div class="result-line"><span>Prime d'Assurance :</span> <span id="primeAssurance"></span></div>
+        <div class="result-line"><span>Prix du Forfait :</span> <span id="prixForfaitDisplay"></span></div>
+        <hr style="border-top: 2px dashed var(--orange-light); margin: 20px 0;">
+        <div class="result-line total-price"><span>Paiement Total Mensuel :</span> <span id="paiementMensuel"></span></div>
+    </div>
+</div>
+
+<script>
+    // Variables de prix fixes (inchangées)
+    const PRIX_CHARGEUR = 24.99;
+    const PRIX_LENTILLE = 9.99;
+    const PRIX_NU_DEFAUT = 0.00;
+
+    // Fonction de calcul de la mensualité de prêt
+    function calculerMensualite(montant, tauxAnnuel, dureeMois) {
+        if (dureeMois === 0 || montant <= 0) return 0;
+        
+        // Si le taux est 0 (Taux 0%), la mensualité est simple : Montant / Durée
+        if (tauxAnnuel === 0) {
+            return montant / dureeMois;
+        }
+
+        // Formule de calcul avec TAEG standard
+        const tauxMensuel = tauxAnnuel / 12;
+
+        const facteur = Math.pow(1 + tauxMensuel, dureeMois);
+        const mensualite = montant * (tauxMensuel * facteur) / (facteur - 1);
+
+        return isNaN(mensualite) || !isFinite(mensualite) ? 0 : mensualite;
+    }
+
+    // Met à jour la valeur affichée du curseur (inchangée)
+    function updateSliderValue() {
+        const slider = document.getElementById('duree-slider');
+        const display = document.getElementById('slider-value');
+        display.textContent = slider.value + ' mois';
+    }
+
+    // Fonction principale de calcul
+    function calculate() {
+        // Détermination du TAEG actuel
+        const isTauxZero = document.getElementById('taux-zero').checked;
+        const currentTAEG = isTauxZero ? 0.00 : 0.15; // 0% ou 15%
+
+        // 1. Détermination du prix du mobile
+        const prixNu = PRIX_NU_DEFAUT;
+        
+        // La méthode || 0 gère les champs vides (null/undefined/"" -> 0)
+        const prixSaisiMobile = parseFloat(document.getElementById('price-forfait-mobile').value) || 0; 
+        const prixProduitBase = (prixSaisiMobile > 0) ? prixSaisiMobile : prixNu;
+
+        // 2. Durée, assurance et forfait
+        const dureeMois = parseInt(document.getElementById('duree-slider').value);
+        const primeAssurance = parseFloat(document.querySelector('input[name="assurance"]:checked').value);
+        const prixForfait = parseFloat(document.getElementById('price-forfait').value) || 0;
+        
+        // Le prix du forfait est constant.
+
+
+        // 3. Calcul des accessoires et prestation
+        let prixAccessoiresFixes = 0;
+
+        // Coque (Dropdown)
+        const coquePrice = parseFloat(document.getElementById('coque-select').value) || 0;
+        prixAccessoiresFixes += coquePrice;
+
+        // Verre trempé (Dropdown)
+        const verrePrice = parseFloat(document.getElementById('verre-select').value) || 0;
+        prixAccessoiresFixes += verrePrice;
+
+        // Accessoires restants (checkboxes / radio)
+        if (document.getElementById('chargeur').checked) prixAccessoiresFixes += PRIX_CHARGEUR;
+        if (document.getElementById('lentille').checked) prixAccessoiresFixes += PRIX_LENTILLE;
+
+        // Spray Force (Extraction de la valeur du bouton radio)
+        const sprayValue = parseFloat(document.querySelector('input[name="spray_option"]:checked').value) || 0;
+        prixAccessoiresFixes += sprayValue;
+
+
+        const customValue = parseFloat(document.getElementById('custom-mobile').value) || 0;
+        const prixAccessoireCustom = customValue;
+
+        const prixPrestation = parseFloat(document.querySelector('input[name="prestation"]:checked').value) || 0;
+
+        // 4. Récupération des réductions et Apport
+        const apportPersonnel = parseFloat(document.getElementById('apport-personnel').value) || 0;
+        const valeurReprise = parseFloat(document.getElementById('reprise-mobile').value) || 0;
+        const valeurBoost = parseFloat(document.getElementById('boost-reprise').value) || 0;
+        const valeurODR = parseFloat(document.getElementById('valeur-odr').value) || 0;
+
+        // 5. Montant total à financer (Apport et Réductions déduits)
+        const montantArticlesEtPrestations = prixProduitBase + prixAccessoiresFixes + prixAccessoireCustom + prixPrestation;
+
+        // L'apport, la reprise et le boost sont soustraits du montant à financer
+        const montantReductionsDéduites = apportPersonnel + valeurReprise + valeurBoost;
+
+        const montantFinance = Math.max(0, montantArticlesEtPrestations - montantReductionsDéduites);
+
+        // 6. Calcul de l'économie totale pour le client (Apport Exclu)
+        const economieClientTotale = valeurReprise + valeurBoost + valeurODR;
+
+        // 7. Calcul de la mensualité et des coûts totaux
+        const mensualiteCredit = calculerMensualite(montantFinance, currentTAEG, dureeMois);
+        const coutTotalCredit = mensualiteCredit * dureeMois;
+        const fraisFinancement = coutTotalCredit - montantFinance;
+
+        // Le forfait s'ajoute au paiement mensuel
+        const paiementMensuel = mensualiteCredit + primeAssurance + prixForfait;
+
+
+        // 8. Afficher les résultats
+
+        document.getElementById('prixProduitBase').textContent = prixProduitBase.toFixed(2) + ' €';
+
+        const prixTotalAccessoiresEtPrestations = prixAccessoiresFixes + prixAccessoireCustom + prixPrestation;
+        document.getElementById('prixAccessoiresEtPrestations').textContent = prixTotalAccessoiresEtPrestations.toFixed(2) + ' €';
+
+        // Affichage Forfait (simple)
+        document.getElementById('prixForfaitDisplay').textContent = prixForfait.toFixed(2) + ' € / mois';
+
+        document.getElementById('valeurApport').textContent = "-" + apportPersonnel.toFixed(2) + ' €';
+        document.getElementById('valeurReprise').textContent = "-" + valeurReprise.toFixed(2) + ' €';
+        document.getElementById('valeurBoost').textContent = "-" + valeurBoost.toFixed(2) + ' €';
+
+        document.getElementById('valeurODR').textContent = "-" + valeurODR.toFixed(2) + ' €';
+
+        document.getElementById('economieClientTotale').textContent = economieClientTotale.toFixed(2) + ' €';
+
+        document.getElementById('montantFinance').textContent = montantFinance.toFixed(2) + ' €';
+
+        // Affichage des frais de financement (si Taux 0%, ils sont à 0)
+        document.getElementById('fraisFinancement').textContent = (currentTAEG === 0.00) ? '0,00 € (Taux 0%)' : fraisFinancement.toFixed(2) + ' €';
+
+        document.getElementById('coutTotal').textContent = coutTotalCredit.toFixed(2) + ' €';
+
+        document.getElementById('mensualiteCredit').textContent = mensualiteCredit.toFixed(2) + ' €';
+        document.getElementById('primeAssurance').textContent = primeAssurance.toFixed(2) + ' € / mois';
+        
+        // Affichage du paiement mensuel total (simple)
+        document.getElementById('paiementMensuel').textContent = paiementMensuel.toFixed(2) + ' € / mois';
+    }
+
+    // Fonction d'initialisation
+    window.onload = function() {
+        updateSliderValue();
+        calculate();
+    };
+</script>
+
+</body>
+</html>
